@@ -1,10 +1,18 @@
 import os
-from apikey import apikey
+from keys.apikey import apikey
 import streamlit as st
 import pandas as pd
-from langchain.llms import openai
+from langchain_community.llms import openai
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from dotenv import load_dotenv,find_dotenv
+
+#OpenAI key
+os.environ['OPENAI_API_KEY']=apikey
+load_dotenv(find_dotenv())
+
+
+#llm model
+llm = openai.OpenAI(temperature=0)  
 
 #Main
 st.title('AI Assistant🤖 for Data Science')
@@ -23,8 +31,7 @@ with st.sidebar:
                models,and we'll use then to tackle 
                your problem🚩.Sounds fun right?🤩**''')
     
-    with st.expander('This is an expander'):
-        st.write('This is text')
+    
 
     
     st.divider()
@@ -42,5 +49,16 @@ st.button("Let's get started",on_click=clicked,args=[1])
 if st.session_state.clicked[1]:
     st.header('Exploratory Data Analysis Part')
     st.subheader('Solution')
-    usr_csv=st.file_uploader("Upload your file here",type="csv")
+    user_csv=st.file_uploader("Upload your file here",type="csv")
 
+    if user_csv is not None:
+        user_csv.seek(0)
+        df=pd.read_csv(user_csv,low_memory=False)
+
+with st.sidebar:
+    with st.expander('What are the steps of EDA?'):
+        st.write(llm('What are the steps of EDA?'))
+
+pandas_agent=create_pandas_dataframe_agent(llm,df,verbose=True)
+question='What is the meaning of the columns'
+     
