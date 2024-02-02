@@ -125,5 +125,5 @@ if st.session_state.clicked[1]:
             user_question_dataframe=st.text_input( "Is there anything else you would like to know about your dataframe?")
             if user_question_dataframe is not None and user_question_variable not in ("","no","No"):
                 function_question_dataframe()
-            if user_question_dataframe is ("no","No"):
+            if user_question_dataframe in ("no","No"):
                 st.write("")
