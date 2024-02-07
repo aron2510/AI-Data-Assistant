@@ -6,6 +6,14 @@ from langchain_community.llms import openai
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from dotenv import load_dotenv,find_dotenv
 
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain,SimpleSequentialChain,SequentialChain
+from langchain_experimental.agents.agent_toolkits import create_python_agent
+from langchain_experimental.tools.python.tool import PythonREPLTool
+from langchain.agents.agent_types import AgentType
+from langchain.utilities.wikipedia import WikipediaAPIWrapper
+
+
 #OpenAI key
 os.environ['OPENAI_API_KEY']=apikey
 load_dotenv(find_dotenv())
@@ -127,3 +135,15 @@ if st.session_state.clicked[1]:
                 function_question_dataframe()
             if user_question_dataframe in ("no","No"):
                 st.write("")
+
+                if user_question_dataframe:
+                    st.divider()
+                    st.header("Data Science Problem")
+                    st.write("Now that we have a solid group of the data at hand and a clear understanding of the variable we intend to investigate, it's important that we reframe our business problem into a data science problem ")
+
+                    prompt=st.text_input("Add your prompt here!!")
+
+                    if prompt:
+                        response=llm(prompt)
+                        st.write(response)
+
