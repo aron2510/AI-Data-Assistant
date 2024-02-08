@@ -143,6 +143,12 @@ if st.session_state.clicked[1]:
 
                     prompt=st.text_input("Add your prompt here!!")
 
+                    data_problem_template=PromptTemplate(
+                        input_variables=['business_problem']
+                        template='Convert the following business problem into a data science problem: {business_problem}.'
+                        
+                    )
+
                     if prompt:
                         response=llm(prompt)
                         st.write(response)
