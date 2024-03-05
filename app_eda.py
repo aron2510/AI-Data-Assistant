@@ -109,9 +109,41 @@ if st.session_state.clicked[1]:
         
         @st.cache_data
         def function_question_dataframe():
-            dataframe_info=pandas_agent.run(user_question_dataframe)
+            dataframe_info = pandas_agent.run(user_question_dataframe)
             st.write(dataframe_info)
             return
+        
+        @st.cache_resource
+        def wiki(prompt):
+            wiki_research=WikipediaAPIWrapper().run(prompt)
+            return wiki_research
+        
+        @st.cache_data
+        def prompt_templates():
+            data_problem_template=PromptTemplate(
+                    input_variables=['business_problem'],
+                    template='Convert the following business problem into a data science problem: {business_problem}.'
+                    )
+            model_selection_template=PromptTemplate(
+                    input_variables=['data_problem','wikipedia_research'],
+                    template='Give me a list of machine learning algorithms suitable for solving this problem: {data_problem}, while using this Wikipedia research; {wikipedia_research}.'
+                    )
+            return data_problem_template,model_selection_template
+
+        @st.cache_data
+        def chains():
+            data_problem_chain=LLMChain(llm=llm,prompt = prompt_templates()[0],verbose=True,output_key='data_problem')
+            model_selection_chain=LLMChain(llm=llm,prompt = prompt_templates()[1],verbose=True,output_key='model_selection')
+            Sequential_Chain=SequentialChain(chains=[data_problem_chain,model_selection_chain],input_variables=['business_problem','wikipedia_research'],output_variables=['data_problem', 'model_selection'], verbose=True)
+            return Sequential_Chain
+        
+        @st.cache_data        
+        def chains_output(prompt,wiki_research):
+            my_chain = chains()
+            my_chain_output = my_chain({'business_problem': prompt, 'wikipedia_research': wiki_research})
+            my_data_problem = my_chain_output["data_problem"]
+            my_model_selection = my_chain_output["model_selection"]
+            return my_data_problem, my_model_selection
 
         #Main
         st.header("Exploratory Data Analysis")
@@ -141,15 +173,13 @@ if st.session_state.clicked[1]:
                     st.header("Data Science Problem")
                     st.write("Now that we have a solid group of the data at hand and a clear understanding of the variable we intend to investigate, it's important that we reframe our business problem into a data science problem ")
 
-                    prompt=st.text_input("Add your prompt here!!")
+                    prompt=st.text_area("What is the business problem you would like to solve")
 
-                    data_problem_template=PromptTemplate(
-                        input_variables=['business_problem']
-                        template='Convert the following business problem into a data science problem: {business_problem}.'
-                        
-                    )
 
                     if prompt:
-                        response=llm(prompt)
-                        st.write(response)
+                        wiki_research = wiki(prompt)
+                        my_data_problem = chains_output(prompt, wiki_research)[0]
+                        my_model_selection = chains_output(prompt, wiki_research)[1]
+                        st.write(my_data_problem)
+                        st.write(my_model_selection)
 
